@@ -3,12 +3,15 @@ FROM codercom/code-server:latest
 
 USER root
 
-# 1. Instalar dependencias del sistema (Incluimos python3-venv y python3-full)
+# 1. Instalar dependencias del sistema (Blindaje para compilación)
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
     python3-full \
+    python3-dev \
+    build-essential \
+    libffi-dev \
     default-jdk \
     git \
     curl \
@@ -23,23 +26,19 @@ RUN mkdir -p /home/coder/project/debug \
 USER coder
 WORKDIR /home/coder/project
 
-# 3. Crear un entorno virtual de Python y activarlo por defecto
+# 3. Crear un entorno virtual de Python y activarlo
 ENV VIRTUAL_ENV=/home/coder/project/venv
 RUN python3 -m venv $VIRTUAL_ENV
-# Aseguramos que el PATH use primero el entorno virtual
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# 4. Instalar las herramientas ahora dentro del entorno virtual (sin --break-system-packages)
-RUN pip install --no-cache-dir \
-    polars \
-    pyspark \
-    dbt-core \
-    dbt-redshift \
-    google-generativeai \
-    pandas
+# 4. Instalar dependencias paso a paso (Mejor para debugging y caché)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir polars pandas
+RUN pip install --no-cache-dir pyspark
+RUN pip install --no-cache-dir dbt-core dbt-redshift
+RUN pip install --no-cache-dir google-generativeai
 
 # Variables de entorno para Spark
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
-# Exponer el puerto por defecto de code-server
 EXPOSE 8080
