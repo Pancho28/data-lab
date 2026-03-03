@@ -38,6 +38,19 @@ RUN pip install --no-cache-dir pyspark
 RUN pip install --no-cache-dir dbt-core dbt-redshift
 RUN pip install --no-cache-dir google-generativeai
 
+# 5. Asegurar permisos finales como ROOT antes de cambiar a CODER
+USER root
+
+# Corregir permisos de la carpeta project y el volumen montado
+RUN chown -R coder:coder /home/coder/project && \
+    chmod -R 755 /home/coder/project
+
+# 6. Configurar el comando de inicio para forzar permisos en el arranque
+# Esto ayuda si el volumen se monta con permisos de root en el despliegue
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
+
+USER coder
+
 # Variables de entorno para Spark
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
