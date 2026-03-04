@@ -47,7 +47,8 @@ RUN chown -R coder:coder /home/coder/project && \
 
 # 6. Configurar el comando de inicio para forzar permisos en el arranque
 # Esto ayuda si el volumen se monta con permisos de root en el despliegue
-ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
+# Forzamos a que las extensiones se guarden en una carpeta dentro del volumen persistente
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "--extensions-dir", "/home/coder/project/.extensions", "."]
 
 USER coder
 
