@@ -3,7 +3,7 @@ FROM codercom/code-server:latest
 
 USER root
 
-# 1. Instalación de dependencias de sistema para Data Engineering
+# 1. Instalación de dependencias de sistema
 RUN apt-get update && apt-get install -y \
     python3 python3-pip python3-venv python3-full python3-dev \
     build-essential libffi-dev default-jdk git curl \
@@ -15,14 +15,20 @@ RUN mkdir -p /home/coder/project && chown -R coder:coder /home/coder/project
 USER coder
 WORKDIR /home/coder/project
 
-# 3. Configuración del entorno virtual de Python
+# 3. Entorno virtual
 ENV VIRTUAL_ENV=/home/coder/project/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# 4. Instalación de stack tecnológico (Polars, Spark, dbt, etc.)
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir polars pandas pyspark dbt-core dbt-redshift google-generativeai
+# 4. Instalación de dependencias paso a paso
+# Actualizar herramientas de empaquetado
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# SOLUCIÓN AL ERROR: Instalar el binario de psycopg2 para dbt-redshift
+RUN pip install --no-cache-dir psycopg2-binary
+
+# Instalar el resto del stack de Data Engineering
+RUN pip install --no-cache-dir polars pandas pyspark dbt-core dbt-redshift google-generativeai
 
 USER root
 
