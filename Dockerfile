@@ -24,11 +24,18 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Actualizar herramientas de empaquetado
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# SOLUCIÓN AL ERROR: Instalar el binario de psycopg2 para dbt-redshift
-RUN pip install --no-cache-dir psycopg2-binary
+# Instalamos psycopg2-binary por separado para que dbt-redshift lo encuentre ya listo
+# Y fijamos versiones clave para evitar que pip entre en bucle (backtracking)
+RUN pip install --no-cache-dir \
+    psycopg2-binary \
+    polars \
+    pandas \
+    pyspark \
+    google-generativeai
 
-# Instalar el resto del stack de Data Engineering
-RUN pip install --no-cache-dir polars pandas pyspark dbt-core dbt-redshift google-generativeai
+# Finalmente instalamos dbt-redshift. Al ya estar instalado psycopg2-binary,
+# no intentará compilar 'psycopg2' y no pedirá 'pg_config'.
+RUN pip install --no-cache-dir dbt-redshift
 
 USER root
 
